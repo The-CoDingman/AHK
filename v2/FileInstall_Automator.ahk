@@ -18,7 +18,7 @@ FileInstallGui := Gui("", "FileInstall Automator")
 DestinationDirText := FileInstallGui.Add("Text", "xm cNavy", "Please your destination path: ")
 DestinationDirEdit := FileInstallGui.Add("Edit", "w400", "A_Desktop `"\Beep`"")
 FileMaskText := FileInstallGui.Add("Text", "xm y+10 cNavy", "Please enter the desired `"File Mask`": ")
-FileMaskEdit := FileInstallGui.Add("Edit", "w400", "*.*")
+FileMaskEdit := FileInstallGui.Add("Edit", "w400", "*.gif")
 CreateIncludeFileCheckbox := FileInstallGui.Add("CheckBox", "y+15", "Create an `"#Include`" file?")
 CreateIncludeFileEdit := FileInstallGui.Add("Edit", "xm w400 +ReadOnly", "<#Include File Path>")
 SelectSourceDirButton := FileInstallGui.Add("Button", "xm+300 w100", "Generate List")
@@ -51,23 +51,26 @@ CreateFileInstall(Destination) {
     FileInstallOutput := ";Create Destination Directory if needed`nif (!DirExist(" Destination "`")) {`n`tDirCreate(" Destination "`")`n}"
     Loop Files, SelectedDir "\*", "D" {
         FileInstallDirArray.Push(OutFileName "\" StrReplace(A_LoopFileFullPath, SelectedDir "\", ""))
-        RecurseDirectories(A_LoopFileFullPath, OutFileName "\" StrReplace(A_LoopFileFullPath, SelectedDir "\", ""), FileInstallDirArray)
+        RecurseFolders(A_LoopFileFullPath, OutFileName "\" StrReplace(A_LoopFileFullPath, SelectedDir "\", ""), FileInstallDirArray)
     }
 
-    FileCount := 0
-    DirectoryCount := FileInstallDirArray.length - 1
-    Loop(FileInstallDirArray.length) {
-        FileInstallOutput .= "`n`n;Create `"" FileInstallDirArray[A_Index] "`" Directory if needed and ``FileInstall`` nested files if needed`nif (!DirExist(" Destination "\" FileInstallDirArray[A_Index] "`")) {`n`tDirCreate(" Destination "\" FileInstallDirArray[A_Index] "`")`n}"
-        Loop Files, OutDir "\" FileInstallDirArray[A_Index] "\" FileMaskEdit.Value {
-            FileCount += 1
-            FileInstallOutput .= "`nif (!FileExist(" StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`")) {`n`t"
-            FileInstallOutput .= "FileInstall(`"" A_LoopFileFullPath "`", " StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`")`n}"
+    FileCount := DirectoryCount := 0
+    Loop Files, SelectedDir "\*", "DR" {
+        FileMaskFound := FileMaskCheck(OutDir "\" FileInstallDirArray[A_Index], FileMaskEdit.Value)
+        if (FileMaskFound = 1) {
+            DirectoryCount += 1
+            FileInstallOutput .= "`n`n;Create `"\" FileInstallDirArray[A_Index] "`" Directory if needed and ``FileInstall`` nested files if needed`nif (!DirExist(" Destination "\" FileInstallDirArray[A_Index] "`")) {`n`tDirCreate(" Destination "\" FileInstallDirArray[A_Index] "`")`n}"
+            Loop Files, OutDir "\" FileInstallDirArray[A_Index] "\" FileMaskEdit.Value {
+                FileCount += 1
+                FileInstallOutput .= "`nif (!FileExist(" StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`")) {`n`t"
+                FileInstallOutput .= "FileInstall(`"" A_LoopFileFullPath "`", " StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`")`n}"
+            }
         }
     }
     
     CopyCodeButton.Visible := FileInstallCodeEdit.Visible := 1
     FileInstallCodeEdit.Value := Trim(Trim(FileInstallOutput, "`n"))
-    StatusBar.SetText("List Generation: Complete", 1), StatusBar.SetText("Files Accounted For: " FileCount, 2), StatusBar.SetText("Directores Accounted For: " DirectoryCount, 3)
+    StatusBar.SetText("List Generation: Complete", 1), StatusBar.SetText("Files Accounted For: " FileCount, 2), StatusBar.SetText("Directories Accounted For: " DirectoryCount, 3)
     if (CheckboxStatus = 1) {
         try {
             IncludeFile := FileOpen("FileInstall -- " OutFileName ".ahk", "w")
@@ -85,9 +88,18 @@ CreateFileInstall(Destination) {
     FileInstallGui.Show("AutoSize")
 }
 
-RecurseDirectories(Source, CurrentDirectory, DirectoryArray) {
-    Loop Files, Source "\*", "D" {
-        DirectoryArray.Push(CurrentDirectory "\" A_LoopFileName)
+FileMaskCheck(Directory, FileMask, MaskFound := 0) {
+    Loop Files, Directory "\" FileMask, "FR" {
+        MaskFound := 1
     }
+    return MaskFound
+}
+
+RecurseFolders(Dir, Parent, DirectoryArray) {
+	Loop Files, Dir "\*", "D" {
+        SplitPath(Dir, &OutFileName, &OutDir, &OutExtension, &OutNameNoExt, &OutDrive)
+		DirectoryArray.Push(Parent "\" A_LoopFileName)
+		RecurseFolders(Dir "\" A_LoopFileName, Parent "\" A_LoopFileName, DirectoryArray)
+	}
 }
 ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
