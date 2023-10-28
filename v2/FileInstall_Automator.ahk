@@ -1,8 +1,6 @@
 ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-;Function:          Loops through a designated directory and generates code and/or an #Include file with conditional checks
-;AHK Version:       2.0
-;Script Version:    1.0/09-28-23/Panaku (The CoDingman) - Converted to AHK v2
-;Credits:           AHK v2 Conversion - Panaku (The CoDingman)
+;Function:      Loops through a designated directory and generates code and/or an #Include file with conditional checks
+;Versioning:    Credits: Panaku (The CoDingman) | AHK Version: v2.0 | Script Version: 1.0/09-28-23
 ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ;This software is provided 'as-is', without any express or implied warranty.
 ;In no event will the authors be held liable for any damages arising from the use of this software.
