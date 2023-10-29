@@ -16,13 +16,13 @@
 ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 FileInstallGui := Gui("", "FileInstall Automator")
 DestinationDirText := FileInstallGui.Add("Text", "xm cNavy", "Please your destination path: ")
-DestinationDirEdit := FileInstallGui.Add("Edit", "w400", "A_Desktop `"\Beep`"")
+DestinationDirEdit := FileInstallGui.Add("Edit", "w400", "A_Desktop `"\Example`"")
 FileMaskText := FileInstallGui.Add("Text", "xm y+10 cNavy", "Please enter the desired `"File Mask`": ")
 FileMaskEdit := FileInstallGui.Add("Edit", "w400", "*.*")
 CreateIncludeFileCheckbox := FileInstallGui.Add("CheckBox", "y+15", "Create an `"#Include`" file?")
 CreateIncludeFileEdit := FileInstallGui.Add("Edit", "xm w400 +ReadOnly", "<#Include File Path>")
 SelectSourceDirButton := FileInstallGui.Add("Button", "xm+300 w100", "Generate List")
-SelectSourceDirButton.OnEvent("Click", (*) => CreateFileInstall(Trim(DestinationDirEdit.Value, "`"")))
+SelectSourceDirButton.OnEvent("Click", (*) => CreateFileInstall(StrReplace(DestinationDirEdit.Value, "`'", "`"")))
 FileInstallCodeEdit := FileInstallGui.Add("Edit", "xm w400 h400 Hidden", "")
 CopyCodeButton := FileInstallGui.Add("Button", "xm+250 w150 Hidden", "Copy Code to Clipboard")
 CopyCodebutton.OnEvent("Click", (*) => A_Clipboard := FileInstallCodeEdit.Value)
@@ -48,7 +48,8 @@ CreateFileInstall(Destination) {
     CheckboxStatus := CreateIncludeFileCheckBox.Value
     SplitPath(SelectedDir, &OutFileName, &OutDir, &OutExtension, &OutNameNoExt, &OutDrive)
     FileInstallDirArray.Push(OutFileName)
-    FileInstallOutput := ";Create Destination Directory if needed`nif (!DirExist(" Destination "`")) {`n`tDirCreate(" Destination "`")`n}"
+    FileInstallOutput := ";Create Destination Directory if needed`nif (!DirExist(" Destination ")) {`n`tDirCreate(" Destination ")`n}"
+    Destination := RegExMatch(Destination, "(`"|`')$", &FoundMatch) ? RTrim(Destination, FoundMatch[]) : Destination " `""
     Loop Files, SelectedDir "\*", "D" {
         FileInstallDirArray.Push(OutFileName "\" StrReplace(A_LoopFileFullPath, SelectedDir "\", ""))
         RecurseFolders(A_LoopFileFullPath, OutFileName "\" StrReplace(A_LoopFileFullPath, SelectedDir "\", ""), FileInstallDirArray)
@@ -97,7 +98,6 @@ FileMaskCheck(Directory, FileMask, MaskFound := 0) {
 
 RecurseFolders(Dir, Parent, DirectoryArray) {
 	Loop Files, Dir "\*", "D" {
-        SplitPath(Dir, &OutFileName, &OutDir, &OutExtension, &OutNameNoExt, &OutDrive)
 		DirectoryArray.Push(Parent "\" A_LoopFileName)
 		RecurseFolders(Dir "\" A_LoopFileName, Parent "\" A_LoopFileName, DirectoryArray)
 	}
