@@ -8,6 +8,9 @@ OnMessage(0x205, WM_BUTTONUP_ImageButtons, 1)
 
 OnClipboardChange ImageButtonClipChanged
 ImageButtonClipChanged(DataType) {
+    if (A_Clipboard = ImageButton.prevClipboard) {
+        return
+    }
     if (ImageButton.HasValue(ImageButton.ActiveImages, A_Clipboard)) {
         A_Clipboard := ImageButton.prevClipboard
     }
