@@ -6,24 +6,10 @@ OnMessage(0x203, WM_BUTTONDOWN_ImageButtons, 1)
 OnMessage(0x204, WM_BUTTONDOWN_ImageButtons, 1)
 OnMessage(0x205, WM_BUTTONUP_ImageButtons, 1)
 
-OnClipboardChange ImageButtonClipChanged
-ImageButtonClipChanged(DataType) {
-    if (A_Clipboard = ImageButton.prevClipboard) {
-        return
-    }
-    if (ImageButton.HasValue(ImageButton.ActiveImages, A_Clipboard)) {
-        A_Clipboard := ImageButton.prevClipboard
-    }
-    else {
-        ImageButton.prevClipboard := A_Clipboard
-    }
-}
-
 class ImageButton {
     static FileFormat := ""
     static FileExtension := ""
-    static ActiveImages := []
-    static prevClipboard := A_Clipboard
+
     __New(CurrGui, Options, FileName) {
         FileFormat := ImageButton.FileFormat
         FileExtension := RegExMatch(FileName, "(.(jpg|JPG|gif|GIF|png|PNG|jpeg|JPEG|bmp|BMP|jfif|JFIF)$)", &match) ? match[] : ImageButton.FileExtension
@@ -44,11 +30,11 @@ class ImageButton {
         y := RegExMatch(Options, "y(\s*|m|p|\+|\-)\K\d+", &match) ? match[] : CurrGui.MarginY, yMod := RegExMatch(Options, "y\K(m|p|\+|\-)", &match) ? match[] : ""
         this.Gui := CurrGui 
         this.default := CurrGui.Add("Picture", Options " x" xMod x " y" yMod y " +0x100 AltSubmit BackgroundTrans", FileFormat defaultImg)
-        this.default.ImageButton := 1, this.default.Obj := this, ImageButton.ActiveImages.Push(this.default.Value)
+        this.default.ImageButton := 1, this.default.Obj := this
         this.hover := CurrGui.Add("Picture", Options " xp yp Hidden +0x100 AltSubmit BackgroundTrans", FileFormat hoverImg)
-        this.hover.ImageButton := 1, this.hover.Obj := this, ImageButton.ActiveImages.Push(this.hover.Value)
+        this.hover.ImageButton := 1, this.hover.Obj := this
         this.click := CurrGui.Add("Picture", Options " xp yp Hidden +0x100 AltSubmit BackgroundTrans", FileFormat clickImg)
-        this.click.ImageButton := 1, this.click.Obj := this, ImageButton.ActiveImages.Push(this.click.Value)
+        this.click.ImageButton := 1, this.click.Obj := this
         return this
     }
 
@@ -275,18 +261,6 @@ class ImageButton {
             }
         }
     }
-
-    static HasValue(haystack, needle) {
-        for index, value in haystack {
-            if (value = needle) {
-                return index
-            }
-        }
-        if !IsObject(Haystack) {
-            MsgBox("Bad Haystack", "Error", "262144")
-        }
-        return 0
-    }
 }
 
 WM_MOUSEMOVE_ImageButtons(wParam, lParam, Msg, Hwnd) {   
@@ -335,6 +309,7 @@ WM_BUTTONDOWN_ImageButtons(wParam, lParam, Msg, Hwnd) {
         CurrObj.click.visible := 1
         CurrObj.hover.visible := 0
         CurrObj.default.visible := 0
+        return 0
     }
 }
 
