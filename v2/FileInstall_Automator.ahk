@@ -15,7 +15,7 @@
 ;Create GUI
 ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 FileInstallGui := Gui("", "FileInstall Automator")
-DestinationDirText := FileInstallGui.Add("Text", "xm cNavy", "Please your destination path: ")
+DestinationDirText := FileInstallGui.Add("Text", "xm cNavy", "Please enter your destination path: ")
 DestinationDirEdit := FileInstallGui.Add("Edit", "w400", "A_Desktop `"\Example`"")
 FileMaskText := FileInstallGui.Add("Text", "xm y+10 cNavy", "Please enter the desired `"File Mask`": ")
 FileMaskEdit := FileInstallGui.Add("Edit", "w400", "*.*")
