@@ -16,18 +16,19 @@
 ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 FileInstallGui := Gui("", "FileInstall Automator")
 DestinationDirText := FileInstallGui.Add("Text", "xm cNavy", "Please enter your destination path: ")
-DestinationDirEdit := FileInstallGui.Add("Edit", "w400", "A_Desktop `"\Example`"")
+DestinationDirEdit := FileInstallGui.Add("Edit", "w460", "A_Desktop `"\Example`"")
 FileMaskText := FileInstallGui.Add("Text", "xm y+10 cNavy", "Please enter the desired `"File Mask`": ")
-FileMaskEdit := FileInstallGui.Add("Edit", "w400", "*.*")
+FileMaskEdit := FileInstallGui.Add("Edit", "w460", "*.*")
 CreateIncludeFileCheckbox := FileInstallGui.Add("CheckBox", "y+15", "Create an `"#Include`" file?")
-CreateIncludeFileEdit := FileInstallGui.Add("Edit", "xm w400 +ReadOnly", "<#Include File Path>")
-SelectSourceDirButton := FileInstallGui.Add("Button", "xm+300 w100", "Generate List")
+OverwriteFilesCheckbox := FileInstallGui.Add("CheckBox", "x+10", "Overwrite existing files?")
+CreateIncludeFileEdit := FileInstallGui.Add("Edit", "xm w460 +ReadOnly", "<#Include File Path>")
+SelectSourceDirButton := FileInstallGui.Add("Button", "xm+360 w100", "Generate List")
 SelectSourceDirButton.OnEvent("Click", (*) => CreateFileInstall(StrReplace(DestinationDirEdit.Value, "`'", "`"")))
-FileInstallCodeEdit := FileInstallGui.Add("Edit", "xm w400 h400 Hidden", "")
-CopyCodeButton := FileInstallGui.Add("Button", "xm+250 w150 Hidden", "Copy Code to Clipboard")
+FileInstallCodeEdit := FileInstallGui.Add("Edit", "xm w460 h400 Hidden", "")
+CopyCodeButton := FileInstallGui.Add("Button", "xm+310 w150 Hidden", "Copy Code to Clipboard")
 CopyCodebutton.OnEvent("Click", (*) => A_Clipboard := FileInstallCodeEdit.Value)
 StatusBar := FileInstallGui.Add("StatusBar",, "*")
-StatusBar.SetParts(135, 125, 160)
+StatusBar.SetParts(140, 160, 180)
 StatusBar.SetText("List Generation: Unstarted", 1), StatusBar.SetText("Files Accounted For: ", 2), StatusBar.SetText("Directories Accounted For: ", 3)
 FileInstallGui.Show("AutoSize")
 ;/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,8 +45,14 @@ CreateFileInstall(Destination) {
         StatusBar.SetText("List Generation: Canceled", 1)
         return
     }
+    if (CopyCodeButton.Visible = 1) {
+        CopyCodeButton.Visible := FileInstallCodeEdit.Visible := 0
+        StatusBar.SetText("List Generation: Unstarted", 1), StatusBar.SetText("Files Accounted For: ", 2), StatusBar.SetText("Directories Accounted For: ", 3)
+        FileInstallGui.Show("AutoSize")
+    }
     FileInstallDirArray := []
-    CheckboxStatus := CreateIncludeFileCheckBox.Value
+    IncludeFileCheckboxStatus := CreateIncludeFileCheckBox.Value
+    OverwriteFilesCheckboxStatus := OverwriteFilesCheckbox.Value
     SplitPath(SelectedDir, &OutFileName, &OutDir, &OutExtension, &OutNameNoExt, &OutDrive)
     FileInstallDirArray.Push(OutFileName)
     FileInstallOutput := ";Create Destination Directory if needed`nif (!DirExist(" Destination ")) {`n`tDirCreate(" Destination ")`n}"
@@ -63,8 +70,13 @@ CreateFileInstall(Destination) {
             FileInstallOutput .= "`n`n;Create `"\" FileInstallDirArray[A_Index] "`" Directory if needed and ``FileInstall`` nested files if needed`nif (!DirExist(" Destination "\" FileInstallDirArray[A_Index] "`")) {`n`tDirCreate(" Destination "\" FileInstallDirArray[A_Index] "`")`n}"
             Loop Files, OutDir "\" FileInstallDirArray[A_Index] "\" FileMaskEdit.Value {
                 FileCount += 1
-                FileInstallOutput .= "`nif (!FileExist(" StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`")) {`n`t"
-                FileInstallOutput .= "FileInstall(`"" A_LoopFileFullPath "`", " StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`")`n}"
+                if (OverwriteFilesCheckboxStatus = 0) {
+                    FileInstallOutput .= "`nif (!FileExist(" StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`")) {`n`t"
+                    FileInstallOutput .= "FileInstall(`"" A_LoopFileFullPath "`", " StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`", false)`n}"
+                }
+                else {
+                    FileInstallOutput .= "`nFileInstall(`"" A_LoopFileFullPath "`", " StrReplace(A_LoopFileFullPath, SelectedDir, Destination "\" OutFileName) "`", true)"
+                }
             }
         }
     }
@@ -72,7 +84,7 @@ CreateFileInstall(Destination) {
     CopyCodeButton.Visible := FileInstallCodeEdit.Visible := 1
     FileInstallCodeEdit.Value := Trim(Trim(FileInstallOutput, "`n"))
     StatusBar.SetText("List Generation: Complete", 1), StatusBar.SetText("Files Accounted For: " FileCount, 2), StatusBar.SetText("Directories Accounted For: " DirectoryCount, 3)
-    if (CheckboxStatus = 1) {
+    if (IncludeFileCheckboxStatus = 1) {
         try {
             IncludeFile := FileOpen("FileInstall -- " OutFileName ".ahk", "w")
 		    IncludeFile.Write(FileInstallOutput)
@@ -86,6 +98,7 @@ CreateFileInstall(Destination) {
     else {
         CreateIncludeFileEdit.Value := "<#Include File Path>"
     }
+    CopyCodeButton.Visible := FileInstallCodeEdit.Visible := 1
     FileInstallGui.Show("AutoSize")
 }
 
