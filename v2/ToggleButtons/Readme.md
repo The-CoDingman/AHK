@@ -1,4 +1,4 @@
-This class takes three different images and combines them into a functional Button.
+This class takes three different images and combines them into a functional Toggle Button.
 You can use this class with both uncompiled and compiled scripts.
 For Compiled Scripts, you'll need to add your images via a FileInstall
     The recommend way to do this is inside of a function that you never call, 
