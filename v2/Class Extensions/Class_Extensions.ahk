@@ -104,7 +104,7 @@ class _GuiEx extends Gui {
         if (Height = "ERROR") {
             ValueError("Option 'Height' is required", -1)
         }
-        gWidth := "w" (SubStr(Width, 2) + 100), gHeight := "h" (SubStr(Height, 2) + 100)
+        gWidth := "w" (SubStr(Width, 2) + 8), gHeight := "h" (SubStr(Height, 2) + 8)
         Name := ControlAttributes.Has("Name") ? ControlAttributes["Name"] : ""
         
         if !(WinGetExStyle(CurrGui.Hwnd) & 0x80) {
